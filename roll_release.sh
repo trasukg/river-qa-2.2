@@ -25,7 +25,7 @@ function test_tar_release {
 	cd $TMP_DIR
 
 	tar xf apache-river-$VERSION-src.tar.gz
-	cd apache-river-2.2.1
+	cd apache-river-$VERSION
 	
 	ant build
 
