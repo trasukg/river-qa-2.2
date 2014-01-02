@@ -75,7 +75,7 @@ String passphrase="Insert passphrase here..."
     */
 /*
 "mvn gpg:sign-and-deploy-file " +
-	"-Dpassphrase='situation business offensive persion want comprehension product features' " +
+	"-Dpassphrase='insert passphrase here' " +
 	"-DpomFile=./${aId}.pom " +
 	"-Dfile=${dir}/${aId}.jar " + 
 	"-DrepositoryId=${repository} " +
