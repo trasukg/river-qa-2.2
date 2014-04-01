@@ -76,6 +76,7 @@ grant {
     permission java.net.SocketPermission "*:1024-",    "connect,accept"; 
     permission java.net.SocketPermission "224.0.1.84", "connect,accept"; 
     permission java.net.SocketPermission "224.0.1.85", "connect,accept"; 
+    permission java.net.SocketPermission "localhost:1024-", "listen";
 
     // File read,write,delete permissions. 
     // 
