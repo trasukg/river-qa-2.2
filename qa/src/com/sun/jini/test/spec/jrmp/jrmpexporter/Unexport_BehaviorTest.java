@@ -192,8 +192,28 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
             // PASS
             logger.log(Level.FINE, "Method returned true as expected.");
         }
+        
+        /* 
+        There seems to be a little stickiness here in unexporting - We're using
+        a fixed port (which maybe isn't the best idea), and it sometimes
+        takes a few seconds for the last port to close.  Hence, we get BindException
+        on the export operation.  We'll try and just repeat for up to ten seconds.
+        */
         JrmpExporter je3 = createJrmpExporter();
-        TestRemoteInterface stub = (TestRemoteInterface) je3.export(tro);
+        TestRemoteInterface stub = null;
+        java.rmi.server.ExportException exception=null;
+        for (int i=0; stub==null && i<10; i++) {
+            exception=null;
+            try {
+                stub=(TestRemoteInterface) je3.export(tro);
+            } catch(java.rmi.server.ExportException ex) {
+                exception = ex;
+                Thread.sleep(1000);
+            }
+        }
+        if (exception !=null) {
+            throw exception;
+        }
         Unexporter u = new Unexporter(je3, false);
         logger.log(Level.FINE,
                 "Start thread which will invoke unexport method"
