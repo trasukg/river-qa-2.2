@@ -245,12 +245,12 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
 
     private ExporterAndStub tryExportPossiblyMoreThanOnce( TestRemoteObject tro) throws InterruptedException, ExportException {
         ExporterAndStub ret=new ExporterAndStub();
-        ret.exporter=createJrmpExporter();
         
         java.rmi.server.ExportException exception=null;
         for (int i=0; ret.stub==null && i<10; i++) {
             exception=null;
             try {
+                ret.exporter=createJrmpExporter();
                 ret.stub=(TestRemoteInterface) ret.exporter.export(tro);
             } catch(java.rmi.server.ExportException ex) {
                 exception = ex;
