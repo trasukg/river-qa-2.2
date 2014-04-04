@@ -30,6 +30,7 @@ import com.sun.jini.qa.harness.TestException;
 import com.sun.jini.test.spec.jrmp.util.AbstractTestBase;
 import com.sun.jini.test.spec.jrmp.util.TestRemoteObject;
 import com.sun.jini.test.spec.jrmp.util.TestRemoteInterface;
+import java.rmi.server.ExportException;
 
 
 /**
@@ -99,7 +100,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
     public void run() throws Exception {
         JrmpExporter je1 = createJrmpExporter();
         TestRemoteObject tro = new TestRemoteObject();
-        je1.export(tro);
+        tryExportPossibleMoreThanOnce(je1, tro);
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter1 with 'true' value...");
@@ -146,7 +147,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
             logger.log(Level.FINE, "Method returned true as expected.");
         }
         JrmpExporter je2 = createJrmpExporter();
-        je2.export(tro);
+        tryExportPossibleMoreThanOnce(je2, tro);
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter2 with 'false' value...");
@@ -201,19 +202,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         */
         JrmpExporter je3 = createJrmpExporter();
         TestRemoteInterface stub = null;
-        java.rmi.server.ExportException exception=null;
-        for (int i=0; stub==null && i<10; i++) {
-            exception=null;
-            try {
-                stub=(TestRemoteInterface) je3.export(tro);
-            } catch(java.rmi.server.ExportException ex) {
-                exception = ex;
-                Thread.sleep(1000);
-            }
-        }
-        if (exception !=null) {
-            throw exception;
-        }
+        stub = tryExportPossibleMoreThanOnce(je3, tro);
         Unexporter u = new Unexporter(je3, false);
         logger.log(Level.FINE,
                 "Start thread which will invoke unexport method"
@@ -252,6 +241,24 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
             // PASS
             logger.log(Level.FINE, "Method returned true as expected.");
         }
+    }
+
+    private TestRemoteInterface tryExportPossibleMoreThanOnce( JrmpExporter je3, TestRemoteObject tro) throws InterruptedException, ExportException {
+        TestRemoteInterface stub=null;
+        java.rmi.server.ExportException exception=null;
+        for (int i=0; stub==null && i<10; i++) {
+            exception=null;
+            try {
+                stub=(TestRemoteInterface) je3.export(tro);
+            } catch(java.rmi.server.ExportException ex) {
+                exception = ex;
+                Thread.sleep(1000);
+            }
+        }
+        if (exception !=null) {
+            throw exception;
+        }
+        return stub;
     }
 
 
