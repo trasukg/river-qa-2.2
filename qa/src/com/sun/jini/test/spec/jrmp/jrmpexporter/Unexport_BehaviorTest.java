@@ -98,13 +98,13 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
      *
      */
     public void run() throws Exception {
-        JrmpExporter je1 = createJrmpExporter();
+        
         TestRemoteObject tro = new TestRemoteObject();
-        tryExportPossibleMoreThanOnce(je1, tro);
+        ExporterAndStub es1=tryExportPossiblyMoreThanOnce(tro);
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter1 with 'true' value...");
-        boolean uRes = je1.unexport(true);
+        boolean uRes = es1.exporter.unexport(true);
 
         if (!uRes) {
             // FAIL
@@ -119,7 +119,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter1 with 'true' value again...");
-        uRes = je1.unexport(true);
+        uRes = es1.exporter.unexport(true);
 
         if (!uRes) {
             // FAIL
@@ -134,7 +134,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter1 with 'false' value...");
-        uRes = je1.unexport(false);
+        uRes = es1.exporter.unexport(false);
 
         if (!uRes) {
             // FAIL
@@ -146,12 +146,12 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
             // PASS
             logger.log(Level.FINE, "Method returned true as expected.");
         }
-        JrmpExporter je2 = createJrmpExporter();
-        tryExportPossibleMoreThanOnce(je2, tro);
+        
+        ExporterAndStub es2=tryExportPossiblyMoreThanOnce(tro);
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter2 with 'false' value...");
-        uRes = je2.unexport(false);
+        uRes = es2.exporter.unexport(false);
 
         if (!uRes) {
             // FAIL
@@ -166,7 +166,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter2 with 'false' value again...");
-        uRes = je2.unexport(false);
+        uRes = es2.exporter.unexport(false);
 
         if (!uRes) {
             // FAIL
@@ -181,7 +181,7 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         logger.log(Level.FINE,
                 "Invoke unexport method of constructed"
                 + " JrmpExporter2 with 'true' value...");
-        uRes = je2.unexport(true);
+        uRes = es2.exporter.unexport(true);
 
         if (!uRes) {
             // FAIL
@@ -200,15 +200,15 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         takes a few seconds for the last port to close.  Hence, we get BindException
         on the export operation.  We'll try and just repeat for up to ten seconds.
         */
-        JrmpExporter je3 = createJrmpExporter();
-        TestRemoteInterface stub = null;
-        stub = tryExportPossibleMoreThanOnce(je3, tro);
-        Unexporter u = new Unexporter(je3, false);
+        
+        ExporterAndStub es3=tryExportPossiblyMoreThanOnce(tro);
+        
+        Unexporter u = new Unexporter(es3.exporter, false);
         logger.log(Level.FINE,
                 "Start thread which will invoke unexport method"
                 + " of constructed JrmpExporter3 with 'false' value...");
         u.start();
-        stub.wait(new Integer(5000));
+        es3.stub.wait(new Integer(5000));
         uRes = u.getResult();
 
         if (uRes) {
@@ -222,12 +222,12 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
             // PASS
             logger.log(Level.FINE, "Method returned false as expected.");
         }
-        u = new Unexporter(je3, true);
+        u = new Unexporter(es3.exporter, true);
         logger.log(Level.FINE,
                 "Start thread which will invoke unexport method"
                 + " of constructed JrmpExporter3 with 'true' value...");
         u.start();
-        stub.wait(new Integer(5000));
+        es3.stub.wait(new Integer(5000));
         uRes = u.getResult();
 
         if (!uRes) {
@@ -243,13 +243,15 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         }
     }
 
-    private TestRemoteInterface tryExportPossibleMoreThanOnce( JrmpExporter je3, TestRemoteObject tro) throws InterruptedException, ExportException {
-        TestRemoteInterface stub=null;
+    private ExporterAndStub tryExportPossiblyMoreThanOnce( TestRemoteObject tro) throws InterruptedException, ExportException {
+        ExporterAndStub ret=new ExporterAndStub();
+        ret.exporter=createJrmpExporter();
+        
         java.rmi.server.ExportException exception=null;
-        for (int i=0; stub==null && i<10; i++) {
+        for (int i=0; ret.stub==null && i<10; i++) {
             exception=null;
             try {
-                stub=(TestRemoteInterface) je3.export(tro);
+                ret.stub=(TestRemoteInterface) je3.export(tro);
             } catch(java.rmi.server.ExportException ex) {
                 exception = ex;
                 Thread.sleep(1000);
@@ -258,9 +260,13 @@ public class Unexport_BehaviorTest extends AbstractTestBase {
         if (exception !=null) {
             throw exception;
         }
-        return stub;
+        return ret;
     }
 
+    private class ExporterAndStub {
+        JrmpExporter exporter=null;
+        TestRemoteInterface stub=null;
+    }
 
     /**
      * Auxiliary class which will invoke unexport() method of specified
