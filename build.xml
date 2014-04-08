@@ -76,6 +76,7 @@
     qa target with the property 'river-home' set to '${basedir}/uut'.
     -->
     <target name="copy-river-uut">
+        <mkdir dir="${basedir}/build"/>
         <get src="${external-river-url}" dest="${basedir}/build/external-river.zip"/>
         <unzip src="${basedir}/build/external-river.zip" dest="${basedir}/uut"/>
     </target>
